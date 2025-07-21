@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// createPostReq струкрура для запроса
 type createPostReq struct {
 	Title    string  `json:"title"`
 	Content  string  `json:"content"`
@@ -14,6 +15,7 @@ type createPostReq struct {
 	Price    float64 `json:"price"`
 }
 
+// createPostReq струкрура для ответа
 type createPostResp struct {
 	ID        uuid.UUID `json:"id"`
 	Title     string    `json:"title"`
@@ -23,6 +25,18 @@ type createPostResp struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
+// CreateAd godoc
+// @Summary Создание нового объявления
+// @Description Авторизованный пользователь может создать объявление
+// @Tags ads
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param ad body createPostReq true "Новое объявление"
+// @Success 200 {object} createPostResp "Объявление успешно создано"
+// @Failure 400 {object} ErrorResponse "Некорректные данные"
+// @Failure 401 {object} ErrorResponse "Пользователь не авторизован"
+// @Router /api/create [post]
 func (h *Handler) CreateAd(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value("userID").(uuid.UUID)
 	if !ok {

@@ -6,14 +6,14 @@ import (
 
 // Logout godoc
 // @Summary Деавторизация пользователя
-// @Description Требует access токен, деактивирует текущую сессию.
+// @Description Деактивирует текущую сессию пользователя по access токену в заголовке
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param accessToken body true "Access Token"
-// @Success 200 {object} StatusResponse "Статус выполнения"
-// @Failure 400 {object} ErrorResponse "Некорректный access токен или ошибка выхода"
-// @Router /api/logout [get]
+// @Success 200 {object} StatusResponse "Пользователь успешно деавторизован"
+// @Failure 400 {object} ErrorResponse "Ошибка деавторизации или отсутствует токен"
+// @Security ApiKeyAuth
+// @Router /api/logout [post]
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	accessToken := r.Header.Get("X-Access-Token")
 	if accessToken == "" {

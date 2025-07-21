@@ -21,15 +21,18 @@ import (
 const configPath = "config.yml" // путь до файла конфигурации
 
 var (
-	authService   *model.AuthService
-	marketService *model.MarketplaceService
+	authService   *model.AuthService        // Сервис аутентификации
+	marketService *model.MarketplaceService // Сервис работы с объявлениями
 )
 
-// @title Auth AuthService API
+// @title Marketplace API
 // @version 1.0
-// @description This is an authentication service with JWT
+// @description Сервис авторизации и размещения объявлений
 // @host localhost:8080
 // @BasePath /
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name X-Access-Token
 func main() {
 	handler, conf := initApp()
 

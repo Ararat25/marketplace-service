@@ -11,13 +11,15 @@ type refreshReq struct {
 
 // RefreshToken godoc
 // @Summary Обновить пару токенов
-// @Description Обновляет access и refresh токены, полученные из заголовков X-Access-Token и X-Refresh-Token. Проверяет User-Agent и IP, отправляет уведомление на webhook при смене IP.
+// @Description Обновляет access и refresh токены, полученные из заголовков X-Access-Token и X-Refresh-Token
 // @Tags auth
 // @Accept json
 // @Produce json
 // @Success 200 {object} entity.Tokens "Новая пара токенов"
 // @Failure 400 {object} ErrorResponse "Ошибки валидации или отсутствуют токены"
-// @Router /api/refresh [get]
+// @Failure 401 {object} ErrorResponse "Ошибка валидации refresh токена"
+// @Security ApiKeyAuth
+// @Router /api/refresh [post]
 func (h *Handler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	accessToken := r.Header.Get("X-Access-Token")
 	refreshToken := r.Header.Get("X-Refresh-Token")

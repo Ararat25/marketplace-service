@@ -7,6 +7,7 @@ import (
 	"strconv"
 )
 
+// response структура для ответа
 type response struct {
 	ID       uuid.UUID `json:"id"`
 	Title    string    `json:"title"`
@@ -17,6 +18,22 @@ type response struct {
 	Mine     bool      `json:"mine,omitempty"`
 }
 
+// ListAd godoc
+// @Summary Получение списка объявлений
+// @Description Получает список объявлений с поддержкой пагинации, сортировки и фильтрации по цене. Если передан X-Access-Token, отмечает объявления пользователя как "mine".
+// @Tags ads
+// @Accept json
+// @Produce json
+// @Param page query int false "Номер страницы" default(1)
+// @Param limit query int false "Количество на странице" default(10)
+// @Param sort query string false "Поле сортировки: price, title, created_at"
+// @Param order query string false "Порядок сортировки: asc или desc"
+// @Param minPrice query number false "Минимальная цена"
+// @Param maxPrice query number false "Максимальная цена"
+// @Success 200 {array} response "Список объявлений"
+// @Failure 500 {object} ErrorResponse "Ошибка загрузки объявлений"
+// @Security ApiKeyAuth
+// @Router /api/ads [post]
 func (h *Handler) ListAd(w http.ResponseWriter, r *http.Request) {
 	var ok bool
 	var userID uuid.UUID

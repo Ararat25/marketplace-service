@@ -6,11 +6,26 @@ import (
 	"net/http"
 )
 
+// authReq структура для запроса
 type authReq struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`
 }
 
+// Auth godoc
+// @Summary Авторизация пользователя
+// @Description Принимает логин и пароль, возвращает access и refresh токены в заголовках
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param credentials body authReq true "Данные для входа"
+// @Success 200 {object} StatusResponse "Успешная авторизация"
+// @Header 200 {string} X-Access-Token "JWT access токен"
+// @Header 200 {string} X-Refresh-Token "JWT refresh токен"
+// @Failure 400 {object} ErrorResponse "Неверный JSON или тело запроса"
+// @Failure 409 {object} ErrorResponse "Неверный логин или пароль"
+// @Failure 500 {object} ErrorResponse "Внутренняя ошибка сервера"
+// @Router /api/auth [post]
 func (h *Handler) Auth(w http.ResponseWriter, r *http.Request) {
 	var buf bytes.Buffer
 	_, err := buf.ReadFrom(r.Body)

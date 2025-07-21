@@ -15,9 +15,204 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/ads": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Получает список объявлений с поддержкой пагинации, сортировки и фильтрации по цене. Если передан X-Access-Token, отмечает объявления пользователя как \"mine\".",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ads"
+                ],
+                "summary": "Получение списка объявлений",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Номер страницы",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Количество на странице",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Поле сортировки: price, title, created_at",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Порядок сортировки: asc или desc",
+                        "name": "order",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Минимальная цена",
+                        "name": "minPrice",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Максимальная цена",
+                        "name": "maxPrice",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список объявлений",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/controller.response"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка загрузки объявлений",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth": {
+            "post": {
+                "description": "Принимает логин и пароль, возвращает access и refresh токены в заголовках",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Авторизация пользователя",
+                "parameters": [
+                    {
+                        "description": "Данные для входа",
+                        "name": "credentials",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.authReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешная авторизация",
+                        "schema": {
+                            "$ref": "#/definitions/controller.StatusResponse"
+                        },
+                        "headers": {
+                            "X-Access-Token": {
+                                "type": "string",
+                                "description": "JWT access токен"
+                            },
+                            "X-Refresh-Token": {
+                                "type": "string",
+                                "description": "JWT refresh токен"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный JSON или тело запроса",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Неверный логин или пароль",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/create": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Авторизованный пользователь может создать объявление",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ads"
+                ],
+                "summary": "Создание нового объявления",
+                "parameters": [
+                    {
+                        "description": "Новое объявление",
+                        "name": "ad",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.createPostReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Объявление успешно создано",
+                        "schema": {
+                            "$ref": "#/definitions/controller.createPostResp"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректные данные",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Пользователь не авторизован",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/logout": {
-            "get": {
-                "description": "Требует access токен, деактивирует текущую сессию.",
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Деактивирует текущую сессию пользователя по access токену в заголовке",
                 "consumes": [
                     "application/json"
                 ],
@@ -28,66 +223,15 @@ const docTemplate = `{
                     "auth"
                 ],
                 "summary": "Деавторизация пользователя",
-                "parameters": [
-                    {
-                        "description": "Access Token",
-                        "name": "accessToken",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/controller.logoutReq"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
-                        "description": "Статус выполнения",
+                        "description": "Пользователь успешно деавторизован",
                         "schema": {
                             "$ref": "#/definitions/controller.StatusResponse"
                         }
                     },
                     "400": {
-                        "description": "Некорректный access токен или ошибка выхода",
-                        "schema": {
-                            "$ref": "#/definitions/controller.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/me": {
-            "get": {
-                "description": "Требует access токен, возвращает GUID пользователя.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "Получить GUID текущего пользователя",
-                "parameters": [
-                    {
-                        "description": "Access Token",
-                        "name": "accessToken",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/controller.getGUIDReq"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "GUID пользователя",
-                        "schema": {
-                            "$ref": "#/definitions/controller.getGUIDRes"
-                        }
-                    },
-                    "400": {
-                        "description": "Некорректный access токен",
+                        "description": "Ошибка деавторизации или отсутствует токен",
                         "schema": {
                             "$ref": "#/definitions/controller.ErrorResponse"
                         }
@@ -96,8 +240,13 @@ const docTemplate = `{
             }
         },
         "/api/refresh": {
-            "get": {
-                "description": "Обновляет access и refresh токены при передаче пары токенов (access в теле запроса, refresh в cookie).",
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Обновляет access и refresh токены, полученные из заголовков X-Access-Token и X-Refresh-Token",
                 "consumes": [
                     "application/json"
                 ],
@@ -108,17 +257,6 @@ const docTemplate = `{
                     "auth"
                 ],
                 "summary": "Обновить пару токенов",
-                "parameters": [
-                    {
-                        "description": "Access Token",
-                        "name": "accessToken",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/controller.refreshReq"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "Новая пара токенов",
@@ -133,7 +271,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Несовпадение User-Agent или неуспешное обновление",
+                        "description": "Ошибка валидации refresh токена",
                         "schema": {
                             "$ref": "#/definitions/controller.ErrorResponse"
                         }
@@ -141,47 +279,45 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/tokens": {
-            "get": {
-                "description": "Возвращает access и refresh токены для пользователя с указанным GUID.",
+        "/api/register": {
+            "post": {
+                "description": "Регистрирует нового пользователя с логином и паролем",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "auth"
                 ],
-                "summary": "Получить пару токенов для пользователя",
+                "summary": "Регистрация нового пользователя",
                 "parameters": [
                     {
-                        "type": "string",
-                        "example": "123e4567-e89b-12d3-a456-426614174000",
-                        "description": "User GUID",
-                        "name": "userId",
-                        "in": "query",
-                        "required": true
+                        "description": "Данные пользователя",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.registerReq"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Пара токенов",
+                        "description": "Пользователь успешно зарегистрирован",
                         "schema": {
-                            "$ref": "#/definitions/entity.Tokens"
-                        },
-                        "headers": {
-                            "Set-Cookie": {
-                                "type": "string",
-                                "description": "refreshToken=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjNlNDU2Ny1lODliLTEyZDMtYTQ1Ni00MjY2MTQxNzQwMDAiLCJleHAiOjE3NTIwMTM4NzgsImlhdCI6MTc1MTkyNzQ3OH0.raF4Ggl8NhyDEkifozWJJnRgZ0W9sXPKtTWqihaL3lRcfyQgd5X--FZBRYogNnzeSFUVYjQswSgZisabiyJuvw; Path=/api; HttpOnly;"
-                            }
+                            "$ref": "#/definitions/controller.registerResp"
                         }
                     },
                     "400": {
-                        "description": "Неверный userId или отсутствует",
+                        "description": "Некорректный JSON",
                         "schema": {
                             "$ref": "#/definitions/controller.ErrorResponse"
                         }
                     },
-                    "401": {
-                        "description": "Ошибка аутентификации",
+                    "409": {
+                        "description": "Пользователь уже существует",
                         "schema": {
                             "$ref": "#/definitions/controller.ErrorResponse"
                         }
@@ -209,39 +345,106 @@ const docTemplate = `{
                 }
             }
         },
-        "controller.getGUIDReq": {
+        "controller.authReq": {
             "type": "object",
             "properties": {
-                "accessToken": {
-                    "type": "string",
-                    "example": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjNlNDU2Ny1lODliLTEyZDMtYTQ1Ni00MjY2MTQxNzQwMDAiLCJhaWQiOiJhYzMzNDhiNy01MGQ3LTQ1NjMtYmE5NS02MzU5OWY5MWQ4NzEiLCJleHAiOjE3NTE5MTk5ODcsImlhdCI6MTc1MTkxOTM4N30.O2ZddFrqUbI33SZ3M5rHYDeJMaYzXrAgk13VP_xJIdIxgOAc-C4qtlGrSDDNqYDcvDWbSfNtJ2JmYm0vC0e8Ug"
+                "login": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
                 }
             }
         },
-        "controller.getGUIDRes": {
+        "controller.createPostReq": {
             "type": "object",
             "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "imageUrl": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "controller.createPostResp": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "imageUrl": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "controller.registerReq": {
+            "type": "object",
+            "properties": {
+                "login": {
+                    "type": "string",
+                    "example": "user123"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "securePassword"
+                }
+            }
+        },
+        "controller.registerResp": {
+            "type": "object",
+            "properties": {
+                "login": {
+                    "type": "string",
+                    "example": "user123"
+                },
                 "userId": {
                     "type": "string",
                     "example": "123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         },
-        "controller.logoutReq": {
+        "controller.response": {
             "type": "object",
             "properties": {
-                "accessToken": {
-                    "type": "string",
-                    "example": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjNlNDU2Ny1lODliLTEyZDMtYTQ1Ni00MjY2MTQxNzQwMDAiLCJhaWQiOiJhYzMzNDhiNy01MGQ3LTQ1NjMtYmE5NS02MzU5OWY5MWQ4NzEiLCJleHAiOjE3NTE5MTk5ODcsImlhdCI6MTc1MTkxOTM4N30.O2ZddFrqUbI33SZ3M5rHYDeJMaYzXrAgk13VP_xJIdIxgOAc-C4qtlGrSDDNqYDcvDWbSfNtJ2JmYm0vC0e8Ug"
-                }
-            }
-        },
-        "controller.refreshReq": {
-            "type": "object",
-            "properties": {
-                "accessToken": {
-                    "type": "string",
-                    "example": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjNlNDU2Ny1lODliLTEyZDMtYTQ1Ni00MjY2MTQxNzQwMDAiLCJhaWQiOiJhYzMzNDhiNy01MGQ3LTQ1NjMtYmE5NS02MzU5OWY5MWQ4NzEiLCJleHAiOjE3NTE5MTk5ODcsImlhdCI6MTc1MTkxOTM4N30.O2ZddFrqUbI33SZ3M5rHYDeJMaYzXrAgk13VP_xJIdIxgOAc-C4qtlGrSDDNqYDcvDWbSfNtJ2JmYm0vC0e8Ug"
+                "author": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "imageUrl": {
+                    "type": "string"
+                },
+                "mine": {
+                    "type": "boolean"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "title": {
+                    "type": "string"
                 }
             }
         },
@@ -254,6 +457,13 @@ const docTemplate = `{
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "X-Access-Token",
+            "in": "header"
+        }
     }
 }`
 
@@ -263,8 +473,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:8080",
 	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "Auth Service API",
-	Description:      "This is an authentication service with JWT",
+	Title:            "Marketplace API",
+	Description:      "Сервис авторизации и размещения объявлений",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
