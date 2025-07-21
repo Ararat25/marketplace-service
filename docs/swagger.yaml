@@ -1,0 +1,169 @@
+basePath: /
+definitions:
+  controller.ErrorResponse:
+    properties:
+      error:
+        example: error message
+        type: string
+    type: object
+  controller.StatusResponse:
+    properties:
+      status:
+        example: ok
+        type: string
+    type: object
+  controller.getGUIDReq:
+    properties:
+      accessToken:
+        example: eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjNlNDU2Ny1lODliLTEyZDMtYTQ1Ni00MjY2MTQxNzQwMDAiLCJhaWQiOiJhYzMzNDhiNy01MGQ3LTQ1NjMtYmE5NS02MzU5OWY5MWQ4NzEiLCJleHAiOjE3NTE5MTk5ODcsImlhdCI6MTc1MTkxOTM4N30.O2ZddFrqUbI33SZ3M5rHYDeJMaYzXrAgk13VP_xJIdIxgOAc-C4qtlGrSDDNqYDcvDWbSfNtJ2JmYm0vC0e8Ug
+        type: string
+    type: object
+  controller.getGUIDRes:
+    properties:
+      userId:
+        example: 123e4567-e89b-12d3-a456-426614174000
+        type: string
+    type: object
+  controller.logoutReq:
+    properties:
+      accessToken:
+        example: eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjNlNDU2Ny1lODliLTEyZDMtYTQ1Ni00MjY2MTQxNzQwMDAiLCJhaWQiOiJhYzMzNDhiNy01MGQ3LTQ1NjMtYmE5NS02MzU5OWY5MWQ4NzEiLCJleHAiOjE3NTE5MTk5ODcsImlhdCI6MTc1MTkxOTM4N30.O2ZddFrqUbI33SZ3M5rHYDeJMaYzXrAgk13VP_xJIdIxgOAc-C4qtlGrSDDNqYDcvDWbSfNtJ2JmYm0vC0e8Ug
+        type: string
+    type: object
+  controller.refreshReq:
+    properties:
+      accessToken:
+        example: eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjNlNDU2Ny1lODliLTEyZDMtYTQ1Ni00MjY2MTQxNzQwMDAiLCJhaWQiOiJhYzMzNDhiNy01MGQ3LTQ1NjMtYmE5NS02MzU5OWY5MWQ4NzEiLCJleHAiOjE3NTE5MTk5ODcsImlhdCI6MTc1MTkxOTM4N30.O2ZddFrqUbI33SZ3M5rHYDeJMaYzXrAgk13VP_xJIdIxgOAc-C4qtlGrSDDNqYDcvDWbSfNtJ2JmYm0vC0e8Ug
+        type: string
+    type: object
+  entity.Tokens:
+    properties:
+      accessToken:
+        example: eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjNlNDU2Ny1lODliLTEyZDMtYTQ1Ni00MjY2MTQxNzQwMDAiLCJhaWQiOiJhYzMzNDhiNy01MGQ3LTQ1NjMtYmE5NS02MzU5OWY5MWQ4NzEiLCJleHAiOjE3NTE5MTk5ODcsImlhdCI6MTc1MTkxOTM4N30.O2ZddFrqUbI33SZ3M5rHYDeJMaYzXrAgk13VP_xJIdIxgOAc-C4qtlGrSDDNqYDcvDWbSfNtJ2JmYm0vC0e8Ug
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is an authentication service with JWT
+  title: Auth Service API
+  version: "1.0"
+paths:
+  /api/logout:
+    get:
+      consumes:
+      - application/json
+      description: Требует access токен, деактивирует текущую сессию.
+      parameters:
+      - description: Access Token
+        in: body
+        name: accessToken
+        required: true
+        schema:
+          $ref: '#/definitions/controller.logoutReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Статус выполнения
+          schema:
+            $ref: '#/definitions/controller.StatusResponse'
+        "400":
+          description: Некорректный access токен или ошибка выхода
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Деавторизация пользователя
+      tags:
+      - auth
+  /api/me:
+    get:
+      consumes:
+      - application/json
+      description: Требует access токен, возвращает GUID пользователя.
+      parameters:
+      - description: Access Token
+        in: body
+        name: accessToken
+        required: true
+        schema:
+          $ref: '#/definitions/controller.getGUIDReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: GUID пользователя
+          schema:
+            $ref: '#/definitions/controller.getGUIDRes'
+        "400":
+          description: Некорректный access токен
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Получить GUID текущего пользователя
+      tags:
+      - auth
+  /api/refresh:
+    get:
+      consumes:
+      - application/json
+      description: Обновляет access и refresh токены при передаче пары токенов (access
+        в теле запроса, refresh в cookie).
+      parameters:
+      - description: Access Token
+        in: body
+        name: accessToken
+        required: true
+        schema:
+          $ref: '#/definitions/controller.refreshReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Новая пара токенов
+          schema:
+            $ref: '#/definitions/entity.Tokens'
+        "400":
+          description: Ошибки валидации или отсутствуют токены
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "401":
+          description: Несовпадение User-Agent или неуспешное обновление
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Обновить пару токенов
+      tags:
+      - auth
+  /api/tokens:
+    get:
+      description: Возвращает access и refresh токены для пользователя с указанным
+        GUID.
+      parameters:
+      - description: User GUID
+        example: 123e4567-e89b-12d3-a456-426614174000
+        in: query
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Пара токенов
+          headers:
+            Set-Cookie:
+              description: refreshToken=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjNlNDU2Ny1lODliLTEyZDMtYTQ1Ni00MjY2MTQxNzQwMDAiLCJleHAiOjE3NTIwMTM4NzgsImlhdCI6MTc1MTkyNzQ3OH0.raF4Ggl8NhyDEkifozWJJnRgZ0W9sXPKtTWqihaL3lRcfyQgd5X--FZBRYogNnzeSFUVYjQswSgZisabiyJuvw;
+                Path=/api; HttpOnly;
+              type: string
+          schema:
+            $ref: '#/definitions/entity.Tokens'
+        "400":
+          description: Неверный userId или отсутствует
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "401":
+          description: Ошибка аутентификации
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Получить пару токенов для пользователя
+      tags:
+      - auth
+swagger: "2.0"

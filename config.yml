@@ -1,0 +1,6 @@
+server:
+  host: ""
+  port: 8080
+  timeout: 5s
+  accessTokenTTl: 600s
+  refreshTokenTTl: 86400s
